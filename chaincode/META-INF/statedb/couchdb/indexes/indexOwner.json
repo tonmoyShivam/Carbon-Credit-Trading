@@ -1,0 +1,6 @@
+{
+  "index": { "fields": ["docType", "owner", "status"] },
+  "ddoc": "indexOwnerDoc",
+  "name": "indexOwner",
+  "type": "json"
+}
