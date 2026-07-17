@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id             String   @id
+  name           String
+  role           String
+  kycStatus      String   @default("Pending")
+  kycDocumentCid String?
+  createdAt      DateTime @default(now())
+
+  users        User[]
+  wallet       Wallet?
+  creditsOwned CarbonCredit[]
+  listings     MarketplaceListing[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  passwordHash   String
+  fabricRole     String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model CarbonCredit {
+  id                 String       @id
+  ownerId            String
+  owner              Organization @relation(fields: [ownerId], references: [id])
+  amount             Float
+  sourceProject      String
+  verificationStatus String
+  status             String
+  issueDate          DateTime
+  expiryDate         DateTime
+  contentHash        String
+  updatedAt          DateTime     @updatedAt
+
+  transactions Transaction[]
+  listing      MarketplaceListing?
+}
+
+model Transaction {
+  id         String       @id @default(uuid())
+  txType     String
+  creditId   String
+  credit     CarbonCredit @relation(fields: [creditId], references: [id])
+  fromOrg    String?
+  toOrg      String?
+  price      Float?
+  fabricTxId String
+  timestamp  DateTime     @default(now())
+
+  flags FlaggedTransaction[]
+}
+
+model MarketplaceListing {
+  id       String       @id @default(uuid())
+  creditId String       @unique
+  credit   CarbonCredit @relation(fields: [creditId], references: [id])
+  sellerId String
+  seller   Organization @relation(fields: [sellerId], references: [id])
+  askPrice Float
+  listedAt DateTime     @default(now())
+}
+
+model Wallet {
+  organizationId String       @id
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  balance        Float        @default(100000)
+  updatedAt      DateTime     @updatedAt
+}
+
+model FlaggedTransaction {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  reason        String
+  flaggedAt     DateTime    @default(now())
+  reviewed      Boolean     @default(false)
+}
