@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth';
 import creditsRouter from './routes/credits';
+import { startEventListener } from './services/eventListener';
 
 const app = express();
 app.use(cors());
@@ -14,3 +15,5 @@ app.use('/api/credits', creditsRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
+
+startEventListener().catch((err) => console.error('Event listener crashed:', err));
