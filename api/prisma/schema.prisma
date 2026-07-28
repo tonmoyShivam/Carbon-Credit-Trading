@@ -20,10 +20,11 @@ model Organization {
   kycDocumentCid String?
   createdAt      DateTime @default(now())
 
-  users        User[]
-  wallet       Wallet?
-  creditsOwned CarbonCredit[]
-  listings     MarketplaceListing[]
+  users            User[]
+  wallet           Wallet?
+  creditsOwned     CarbonCredit[]
+  listings         MarketplaceListing[]
+  purchaseRequests PurchaseRequest[]
 }
 
 model User {
@@ -75,6 +76,19 @@ model MarketplaceListing {
   seller   Organization @relation(fields: [sellerId], references: [id])
   askPrice Float
   listedAt DateTime     @default(now())
+
+  purchaseRequests PurchaseRequest[]
+}
+
+model PurchaseRequest {
+  id          String             @id @default(uuid())
+  listingId   String
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
+  buyerId     String
+  buyer       Organization       @relation(fields: [buyerId], references: [id])
+  status      String             @default("Pending")
+  requestedAt DateTime           @default(now())
+  respondedAt DateTime?
 }
 
 model Wallet {

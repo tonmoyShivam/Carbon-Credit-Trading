@@ -19,6 +19,7 @@ export default function Navbar() {
         <nav className="flex items-center gap-6 text-sm text-paper/80">
           {user ? (
             <>
+              <Link to="/marketplace" className="hover:text-credit transition-colors">Marketplace</Link>
               <Link to="/credits" className="hover:text-credit transition-colors">Credits</Link>
               <Link to="/" className="hover:text-credit transition-colors">Dashboard</Link>
               <span className="text-paper/50">|</span>

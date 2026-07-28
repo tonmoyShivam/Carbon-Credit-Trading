@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import CreditsPage from './pages/CreditsPage'
 import CreditDetailPage from './pages/CreditDetailPage'
+import MarketplacePage from './pages/MarketplacePage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/credits" element={<CreditsPage />} />
           <Route path="/credits/:id" element={<CreditDetailPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
