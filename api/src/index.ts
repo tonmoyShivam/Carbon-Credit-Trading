@@ -7,6 +7,7 @@ import authRouter from './routes/auth';
 import creditsRouter from './routes/credits';
 import kycRouter from './routes/kyc';
 import listingsRouter from './routes/listings';
+import walletRouter from './routes/wallet';
 import { startEventListener } from './services/eventListener';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/credits', creditsRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/listings', listingsRouter);
+app.use('/api/wallet', walletRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API listening on port ${PORT}`));

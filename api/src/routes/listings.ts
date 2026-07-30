@@ -67,6 +67,11 @@ router.post('/requests/:reqId/accept', requireAuth, async (req: AuthedRequest, r
       return res.status(400).json({ error: `Request is already ${request.status}` });
     }
 
+    const buyerWallet = await prisma.wallet.findUnique({ where: { organizationId: request.buyerId } });
+    if (!buyerWallet || buyerWallet.balance < request.listing.askPrice) {
+      return res.status(400).json({ error: 'Buyer has insufficient balance' });
+    }
+
     const contract = await getContractAs(req.user!.organizationId);
     await contract.submitTransaction(
       'transferCredits',
@@ -76,6 +81,14 @@ router.post('/requests/:reqId/accept', requireAuth, async (req: AuthedRequest, r
     );
 
     await prisma.$transaction([
+      prisma.wallet.update({
+        where: { organizationId: request.buyerId },
+        data: { balance: { decrement: request.listing.askPrice } },
+      }),
+      prisma.wallet.update({
+        where: { organizationId: request.listing.sellerId },
+        data: { balance: { increment: request.listing.askPrice } },
+      }),
       prisma.purchaseRequest.deleteMany({ where: { listingId: request.listingId } }),
       prisma.marketplaceListing.delete({ where: { id: request.listingId } }),
     ]);

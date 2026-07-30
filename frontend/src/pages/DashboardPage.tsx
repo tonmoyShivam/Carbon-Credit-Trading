@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { useAuth } from '../context/AuthContext'
 import { creditsService } from '../services/creditsService'
+import { walletService } from '../services/walletService'
 
 interface HeldCredit {
   creditId: string
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lookupId, setLookupId] = useState('')
+  const [balance, setBalance] = useState<number | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -29,6 +31,11 @@ export default function DashboardPage() {
       .then((data) => setCredits(Array.isArray(data) ? data : []))
       .catch((err) => setError(err.response?.data?.error ?? 'Could not load your credits.'))
       .finally(() => setLoading(false))
+
+    walletService
+      .getBalance()
+      .then((w) => setBalance(w.balance))
+      .catch(() => setBalance(null))
   }, [user])
 
   const handleLookup = (e: FormEvent) => {
@@ -45,7 +52,7 @@ export default function DashboardPage() {
       </h1>
       <p className="mt-1 text-sm text-ink/60">{user?.organizationId} · {user?.fabricRole}</p>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 max-w-md">
+      <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-2xl">
         <div className="rounded-md border border-mist bg-white px-5 py-4">
           <p className="text-sm text-ink/60">Credits held</p>
           <p className="mt-1 font-display text-3xl font-semibold text-canopy">{credits.length}</p>
@@ -53,6 +60,12 @@ export default function DashboardPage() {
         <div className="rounded-md border border-mist bg-white px-5 py-4">
           <p className="text-sm text-ink/60">Total amount</p>
           <p className="mt-1 font-display text-3xl font-semibold text-canopy">{totalAmount}</p>
+        </div>
+        <div className="rounded-md border border-mist bg-white px-5 py-4">
+          <p className="text-sm text-ink/60">Wallet balance</p>
+          <p className="mt-1 font-display text-3xl font-semibold text-credit">
+            {balance === null ? '—' : `$${balance.toLocaleString()}`}
+          </p>
         </div>
       </div>
 
