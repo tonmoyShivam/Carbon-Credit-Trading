@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage'
 import CreditsPage from './pages/CreditsPage'
 import CreditDetailPage from './pages/CreditDetailPage'
 import MarketplacePage from './pages/MarketplacePage'
+import KycPage from './pages/KycPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/credits" element={<CreditsPage />} />
           <Route path="/credits/:id" element={<CreditDetailPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/kyc" element={<KycPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

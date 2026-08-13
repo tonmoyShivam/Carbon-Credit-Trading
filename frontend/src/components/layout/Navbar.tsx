@@ -21,6 +21,7 @@ export default function Navbar() {
             <>
               <Link to="/marketplace" className="hover:text-credit transition-colors">Marketplace</Link>
               <Link to="/credits" className="hover:text-credit transition-colors">Credits</Link>
+              <Link to="/kyc" className="hover:text-credit transition-colors">KYC</Link>
               <Link to="/" className="hover:text-credit transition-colors">Dashboard</Link>
               <span className="text-paper/50">|</span>
               <span>{user.email}</span>

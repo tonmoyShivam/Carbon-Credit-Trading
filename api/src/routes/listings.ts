@@ -5,6 +5,14 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 
 const router = Router();
 
+async function requireApprovedKyc(orgId: string): Promise<string | null> {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org || org.kycStatus !== 'Approved') {
+    return `Organization KYC status is ${org?.kycStatus ?? 'unknown'} — must be Approved to trade`;
+  }
+  return null;
+}
+
 router.get('/', requireAuth, async (req: AuthedRequest, res) => {
   try {
     const listings = await prisma.marketplaceListing.findMany({
@@ -20,6 +28,9 @@ router.get('/', requireAuth, async (req: AuthedRequest, res) => {
 router.post('/', requireAuth, async (req: AuthedRequest, res) => {
   const { creditId, askPrice } = req.body;
   try {
+    const kycError = await requireApprovedKyc(req.user!.organizationId);
+    if (kycError) return res.status(403).json({ error: kycError });
+
     const contract = await getContractAs(req.user!.organizationId);
     const result = await contract.evaluateTransaction('verifyCredits', creditId);
     const credit = JSON.parse(Buffer.from(result).toString('utf8'));
@@ -143,6 +154,9 @@ router.delete('/:id', requireAuth, async (req: AuthedRequest, res) => {
 
 router.post('/:id/request', requireAuth, async (req: AuthedRequest, res) => {
   try {
+    const kycError = await requireApprovedKyc(req.user!.organizationId);
+    if (kycError) return res.status(403).json({ error: kycError });
+
     const listing = await prisma.marketplaceListing.findUnique({ where: { id: req.params.id } });
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
     if (listing.sellerId === req.user!.organizationId) {
