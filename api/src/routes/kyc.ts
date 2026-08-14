@@ -35,7 +35,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res) => {
 router.get('/pending', requireAuth, requireRole('regulator'), async (req: AuthedRequest, res) => {
   try {
     const orgs = await prisma.organization.findMany({
-      where: { kycStatus: 'Pending' },
+      where: { kycStatus: 'Pending', id: { not: req.user!.organizationId } },
       select: { id: true, name: true, role: true, kycStatus: true, kycDocumentCid: true, createdAt: true },
     });
     res.json(orgs);
@@ -45,6 +45,9 @@ router.get('/pending', requireAuth, requireRole('regulator'), async (req: Authed
 });
 
 router.post('/:orgId/approve', requireAuth, requireRole('regulator'), async (req: AuthedRequest, res) => {
+  if (req.params.orgId === req.user!.organizationId) {
+    return res.status(403).json({ error: 'Regulators cannot approve their own organization' });
+  }
   try {
     const org = await prisma.organization.update({
       where: { id: req.params.orgId },
@@ -57,6 +60,9 @@ router.post('/:orgId/approve', requireAuth, requireRole('regulator'), async (req
 });
 
 router.post('/:orgId/reject', requireAuth, requireRole('regulator'), async (req: AuthedRequest, res) => {
+  if (req.params.orgId === req.user!.organizationId) {
+    return res.status(403).json({ error: 'Regulators cannot reject their own organization' });
+  }
   try {
     const org = await prisma.organization.update({
       where: { id: req.params.orgId },
