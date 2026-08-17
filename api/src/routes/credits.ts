@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { prisma } from '../services/db';
 import { getContractAs } from '../services/fabricConnection';
 import { requireAuth, requireRole, AuthedRequest } from '../middleware/auth';
 
@@ -20,8 +21,30 @@ router.post('/issue', requireAuth, requireRole('regulator'), async (req: AuthedR
 router.post('/:creditId/transfer', requireAuth, async (req: AuthedRequest, res) => {
   const { newOwner, price } = req.body;
   try {
+    const buyerOrg = await prisma.organization.findUnique({ where: { id: newOwner } });
+    if (!buyerOrg) {
+      return res.status(400).json({ error: `Organization '${newOwner}' does not exist` });
+    }
+
+    const buyerWallet = await prisma.wallet.findUnique({ where: { organizationId: newOwner } });
+    if (!buyerWallet || buyerWallet.balance < price) {
+      return res.status(400).json({ error: 'Buyer has insufficient balance' });
+    }
+
     const contract = await getContractAs(req.user!.organizationId);
     await contract.submitTransaction('transferCredits', req.params.creditId, newOwner, String(price));
+
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { organizationId: newOwner },
+        data: { balance: { decrement: price } },
+      }),
+      prisma.wallet.update({
+        where: { organizationId: req.user!.organizationId },
+        data: { balance: { increment: price } },
+      }),
+    ]);
+
     res.json({ message: 'Credit transferred' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
